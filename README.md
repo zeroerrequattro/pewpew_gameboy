@@ -1,2 +1,4 @@
-# pewpew_gameboy
-My first game in C for Gameboy
+# PEW PEW GAMEBOY
+My first game for Gameboy, made in C with GBDK.
+
+have fun
