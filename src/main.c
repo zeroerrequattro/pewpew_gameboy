@@ -1,5 +1,4 @@
 #include <gb/gb.h>
-#include <stdio.h>
 #include <rand.h>
 #include "structs/ship.c"
 #include "structs/bullet.c"
@@ -15,15 +14,12 @@ void checkInput();
 void moveShip();
 void moveBullets();
 void moveBkg();
-//void enemyMove();
-//void enemyCreate();
-//void enemyDestroy();
 void updateSwitches();
 
 UINT8 limRand(UINT8, UINT8);
 UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j,timer,visible,enemy[2],enemyDir[2];
+UINT8 x,y,i,j,timer,visible;
 
 ship_struct ship;
 
@@ -53,10 +49,6 @@ void init() {
 	i = 0;
 	timer = 0;
 	visible = 0;
-	/*enemyDir[0] = 0;
-	enemyDir[1] = 0;
-	enemy[0] = 0;
-	enemy[1] = 0;*/
 
 	createShip();
 }
@@ -125,55 +117,6 @@ void updateSwitches() {
 	SHOW_SPRITES;
 	SHOW_BKG;
 }
-
-/*
-void enemyCreate() {
-	if(visible == 0) { timer++; }
-	if(timer > 254 && visible == 0) {
-		timer = 0;
-		visible = 1;
-		enemy[0] = limRand(24,144);
-		enemy[1] = limRand(24,144);
-		set_sprite_tile(1,0);
-	}
-}
-
-void enemyMove() {
-	if(visible == 1) {
-		if(enemy[0] > 143) { enemyDir[0] = 1; }
-		if(enemy[0] < 24)  { enemyDir[0] = 0; }
-		if(enemy[1] > 135) { enemyDir[1] = 1; }
-		if(enemy[1] < 32)  { enemyDir[1] = 0; }
-
-		if(enemyDir[0] == 0) {
-			enemy[0]++;
-		} else {
-			enemy[0]--;
-		}
-
-		if(enemyDir[1] == 0) {
-			enemy[1]++;
-		} else {
-			enemy[1]--;
-		}
-
-		move_sprite(1, enemy[0], enemy[1]);
-
-		if(collisionCheck(player[0], player[1], 8, 8, enemy[0], enemy[1], 8, 8) == 1) {
-			enemyDestroy();
-		}
-	}
-}
-
-void enemyDestroy() {
-	visible = 0;
-	for(i = 1; i < 6; i++) {
-		delay(100);
-		set_sprite_tile(1,i);
-	}
-	i = 0;
-}
-//*/
 
 void checkInput() {
 
