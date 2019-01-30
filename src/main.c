@@ -26,7 +26,6 @@ UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 UINT8 x,y,i,j,timer,visible,enemy[2],enemyDir[2];
 
 ship_struct ship;
-bullet_struct bullet;
 
 void main() {
 	init();
@@ -69,13 +68,10 @@ void createShip() {
 	ship.ship_tiles		= 4;
 	ship.iter_tile		= 0;
 	ship.shoot_status	= 0;
-
-	bullet.pos_x		= 0;
-	bullet.pos_y		= 0;
-	bullet.bullet_tile	= 4;
-	bullet.max_bullets	= 5;
-	bullet.timer		= 0;
-	bullet.timer_trigger = 100;
+	ship.bullet_tile	= 4;
+	ship.max_bullets	= 5;
+	ship.bullet_timer	= 0;
+	ship.bullet_trigger = 100;
 	
 	// Set the first movable sprite (0) to be the first tile in the sprite memory (0)
 	for(ship.iter_tile; ship.iter_tile < ship.ship_tiles; ship.iter_tile++) {
@@ -86,26 +82,29 @@ void createShip() {
 }
 
 void moveShip() {
+	UINT8 ship_x,ship_y;
+
 	for(ship.iter_tile = 0; ship.iter_tile < ship.ship_tiles; ship.iter_tile++) {
-		if(ship.iter_tile == 0) {
-			move_sprite(ship.iter_tile,ship.pos_x,ship.pos_y);
+		ship_x = ship.pos_x;
+		ship_y = ship.pos_y;
+
+		if(ship.iter_tile == 1 || ship.iter_tile == 3) {
+			ship_y = ship.pos_y + 8;
 		}
-		if(ship.iter_tile == 1) {
-			move_sprite(ship.iter_tile,ship.pos_x,(ship.pos_y + 8));
+
+		if(ship.iter_tile == 2 || ship.iter_tile == 3) {
+			ship_x = ship.pos_x + 8;
 		}
-		if(ship.iter_tile == 2) {
-			move_sprite(ship.iter_tile,(ship.pos_x + 8),ship.pos_y);
-		}
-		if(ship.iter_tile == 3) {
-			move_sprite(ship.iter_tile,(ship.pos_x + 8),(ship.pos_y + 8));
-		}
+
+		move_sprite(ship.iter_tile,ship_x,ship_y);
 	}
 }
 
 void moveBullets() {
-	if(ship.shoot_status == 1) {
+	
+	/*if(ship.shoot_status == 1) {
 		ship.shoot_status = 2;
-		set_sprite_tile(bullet.bullet_tile,13);
+		set_sprite_tile(ship.bullet_tile,13);
 		bullet.pos_x = ship.pos_x + 4;
 		bullet.pos_y = ship.pos_y - 8;
 	}
@@ -114,7 +113,7 @@ void moveBullets() {
 		bullet.pos_y -= 3;
 	} else {
 		ship.shoot_status = 0;
-	}
+	}*/
 }
 
 void moveBkg() {
@@ -179,7 +178,7 @@ void enemyDestroy() {
 void checkInput() {
 
 	j = joypad();
-	if (j & J_A)     						{ if(ship.shoot_status == 0) { ship.shoot_status = 1; } } // A = shoot
+	if (j & J_A)     						{ ship.shoot_status = 1; } else { ship.shoot_status = 0; } // A = shoot
 	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; } // UP
 	if ((j & J_RIGHT) && ship.pos_x < 144)	{ ship.pos_x++; } // RIGHT
 	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; } // DOWN
