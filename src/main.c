@@ -11,7 +11,9 @@
 void init();
 void createShip();
 void checkInput();
+void checkDirection();
 void moveShip();
+void checkShoot();
 void moveBullets();
 void moveBkg();
 void updateSwitches();
@@ -22,6 +24,7 @@ UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 UINT8 x,y,i,j,timer,visible;
 
 ship_struct ship;
+bullet_struct bullets[5];
 
 void main() {
 	init();
@@ -36,7 +39,6 @@ void main() {
 }
 
 void init() {
-	DISPLAY_ON; // Turn on the display
 
 	set_bkg_data(0,24,bkgSrpites);
 	for(y = 0; y < 9; y++) {
@@ -51,26 +53,46 @@ void init() {
 	visible = 0;
 
 	createShip();
+
+	DISPLAY_ON; // Turn on the display
 }
 
 void createShip() {
+	UINT8 a;
 
 	ship.pos_x			= 80;
 	ship.pos_y			= 124;
+	ship.direction		= 0;
 	ship.ship_tiles		= 4;
-	ship.iter_tile		= 0;
 	ship.shoot_status	= 0;
 	ship.bullet_tile	= 4;
 	ship.max_bullets	= 5;
+	ship.active_bullets	= 0;
 	ship.bullet_timer	= 0;
-	ship.bullet_trigger = 100;
+	ship.bullet_trigger = 25;
 	
-	// Set the first movable sprite (0) to be the first tile in the sprite memory (0)
-	for(ship.iter_tile; ship.iter_tile < ship.ship_tiles; ship.iter_tile++) {
-		set_sprite_tile(ship.iter_tile,ship.iter_tile);
+	checkDirection();
+
+	// create the bullets and assign the tiles
+	for(a = 0; a < ship.max_bullets; a++) {
+		bullets[a].tile = ship.bullet_tile + a;
+		bullets[a].pos_x = 0;
+		bullets[a].pos_y = 0;
+		bullets[a].shoot = 0;
+
+		set_sprite_tile(bullets[a].tile,13);
 	}
 
 	moveShip();
+}
+
+void checkDirection() {
+	UINT8 tile_position;
+	for(ship.iter_tile = 0; ship.iter_tile < ship.ship_tiles; ship.iter_tile++) {
+		tile_position = ship.iter_tile;
+		if(ship.direction > 0) { tile_position += 4; }
+		set_sprite_tile(ship.iter_tile,tile_position);
+	}
 }
 
 void moveShip() {
@@ -92,20 +114,39 @@ void moveShip() {
 	}
 }
 
-void moveBullets() {
-	
-	/*if(ship.shoot_status == 1) {
-		ship.shoot_status = 2;
-		set_sprite_tile(ship.bullet_tile,13);
-		bullet.pos_x = ship.pos_x + 4;
-		bullet.pos_y = ship.pos_y - 8;
-	}
-	if(bullet.pos_y > 0 && bullet.pos_y < 200 && ship.shoot_status == 2) {
-		move_sprite(bullet.bullet_tile,bullet.pos_x,bullet.pos_y);
-		bullet.pos_y -= 3;
+void checkShoot() {
+	if(ship.shoot_status == 1) {
+		if((ship.bullet_timer == 0 || ship.bullet_timer >= ship.bullet_trigger) && ship.active_bullets < ship.max_bullets) {
+			bullets[ship.active_bullets].shoot = 1;
+			bullets[ship.active_bullets].pos_x = ship.pos_x + 4;
+			bullets[ship.active_bullets].pos_y = ship.pos_y - 8;
+			ship.active_bullets++;
+
+			if(ship.active_bullets == ship.max_bullets) {
+				ship.active_bullets = 0;
+			}
+			
+			ship.bullet_timer = 0;
+		}
+		ship.bullet_timer++;
 	} else {
-		ship.shoot_status = 0;
-	}*/
+		ship.bullet_timer = 0;
+	}
+}
+
+void moveBullets() {
+	UINT8 a;
+	for(a = 0; a <= 5; a++) {
+		if(bullets[a].shoot == 1) {
+			bullets[a].pos_y -= 3;
+
+			if(bullets[a].pos_y > 0 && bullets[a].pos_y < 200) {
+				move_sprite(bullets[a].tile,bullets[a].pos_x,bullets[a].pos_y);
+			} else {
+				bullets[a].shoot = 0;
+			}
+		}
+	}
 }
 
 void moveBkg() {
@@ -121,12 +162,17 @@ void updateSwitches() {
 void checkInput() {
 
 	j = joypad();
-	if (j & J_A)     						{ ship.shoot_status = 1; } else { ship.shoot_status = 0; } // A = shoot
+
+	ship.shoot_status = (j & J_A) ? 1 : 0;  // A = shoot
+	ship.direction = (j & J_RIGHT) ? 1 : (j & J_LEFT) ? 2 : 0; // check ship direction
+
 	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; } // UP
 	if ((j & J_RIGHT) && ship.pos_x < 144)	{ ship.pos_x++; } // RIGHT
 	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; } // DOWN
 	if ((j & J_LEFT) && ship.pos_x > 18)	{ ship.pos_x--; } // LEFT
 
+	checkShoot();
+	checkDirection();
 	moveBullets();
 	moveShip();
 }
