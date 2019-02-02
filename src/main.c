@@ -10,6 +10,7 @@
 
 void init();
 void createShip();
+void createBullets();
 void checkInput();
 void checkDirection();
 void moveShip();
@@ -53,13 +54,12 @@ void init() {
 	visible = 0;
 
 	createShip();
+	createBullets();
 
 	DISPLAY_ON; // Turn on the display
 }
 
 void createShip() {
-	UINT8 a;
-
 	ship.pos_x			= 80;
 	ship.pos_y			= 124;
 	ship.direction		= 0;
@@ -70,9 +70,13 @@ void createShip() {
 	ship.active_bullets	= 0;
 	ship.bullet_timer	= 0;
 	ship.bullet_trigger = 25;
-	
-	checkDirection();
 
+	checkDirection();
+	moveShip();
+}
+
+void createBullets() {
+	UINT8 a;
 	// create the bullets and assign the tiles
 	for(a = 0; a < ship.max_bullets; a++) {
 		bullets[a].tile = ship.bullet_tile + a;
@@ -82,15 +86,14 @@ void createShip() {
 
 		set_sprite_tile(bullets[a].tile,13);
 	}
-
-	moveShip();
 }
 
 void checkDirection() {
 	UINT8 tile_position;
+
 	for(ship.iter_tile = 0; ship.iter_tile < ship.ship_tiles; ship.iter_tile++) {
 		tile_position = ship.iter_tile;
-		if(ship.direction > 0) { tile_position += 4; }
+		if(ship.direction > 0) { tile_position += (4 * ship.direction); }
 		set_sprite_tile(ship.iter_tile,tile_position);
 	}
 }
