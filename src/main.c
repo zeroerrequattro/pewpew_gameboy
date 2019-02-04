@@ -24,6 +24,8 @@ void moveBullets();
 void moveBkg();
 void updateSwitches();
 
+void interrupt_lcd();
+
 //UINT8 limRand(UINT8, UINT8);
 //UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
@@ -47,7 +49,25 @@ void main() {
 	}
 }
 
+void interrupt_lcd() {
+	HIDE_WIN;
+}
+
 void init() {
+
+	STAT_REG = 0x40;	// enable LYC=LY interrupt
+	LY_REG = 0x08;		// Fire LCD Interupt on the 8th scan line
+
+	disable_interrupts();
+	
+	SHOW_WIN;
+    SHOW_SPRITES;
+    SHOW_BKG;
+
+    add_LCD(interrupt_lcd);
+    enable_interrupts();
+
+    set_interrupts(VBL_IFLAG | LCD_IFLAG);
 
 	score = 0;
 	enemy_timer = 0;
@@ -164,7 +184,6 @@ void moveBkg() {
 }
 
 void updateSwitches() {
-	HIDE_WIN;
 	SHOW_SPRITES;
 	SHOW_BKG;
 }
