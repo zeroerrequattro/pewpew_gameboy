@@ -24,10 +24,10 @@ void moveBullets();
 void moveBkg();
 void updateSwitches();
 
-UINT8 limRand(UINT8, UINT8);
-UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
+//UINT8 limRand(UINT8, UINT8);
+//UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j;
+UINT8 x,y,i,j,enemy_timer,score;
 
 ship_struct ship;
 bullet_struct bullets[5];
@@ -35,7 +35,7 @@ bullet_struct bullets[5];
 void main() {
 	init();
 
-	OBP0_REG = 0xD0; //0x1B; 0xE1; change sprite palette
+	OBP0_REG = 0xD0; //0x1B; 0xE1; change sprite palette 
 	OBP1_REG = 0x1B;
 
 	while(1) {
@@ -48,6 +48,9 @@ void main() {
 }
 
 void init() {
+
+	score = 0;
+	enemy_timer = 0;
     
 	// Load the 'sprites' tiles into sprite memory
 	set_sprite_data(0,22,sprites);
