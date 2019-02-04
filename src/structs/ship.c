@@ -6,6 +6,7 @@ typedef struct {
 	UINT8 direction;
 	UINT8 ship_tiles;
 	UINT8 iter_tile;
+	UINT8 lives;
 	UINT8 shoot_status;
 	UINT8 bullet_tile;
 	UINT8 max_bullets;

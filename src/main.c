@@ -1,10 +1,15 @@
 #include <gb/gb.h>
 #include <rand.h>
+
 #include "structs/ship.c"
 #include "structs/bullet.c"
+
 #include "sprites/bkgSprites.c"
 #include "sprites/sprites.c"
+#include "sprites/font.c"
+
 #include "tiles/bkgFloor.c"
+#include "tiles/display.c"
 
 // declaration
 
@@ -22,7 +27,7 @@ void updateSwitches();
 UINT8 limRand(UINT8, UINT8);
 UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j,timer,visible;
+UINT8 x,y,i,j;
 
 ship_struct ship;
 bullet_struct bullets[5];
@@ -30,28 +35,28 @@ bullet_struct bullets[5];
 void main() {
 	init();
 
+	OBP0_REG = 0xD0; //0x1B; 0xE1; change sprite palette
+	OBP1_REG = 0x1B;
+
 	while(1) {
 		checkInput();     // Check for user input (and act on it)
-		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
 		moveBkg();
+		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
         wait_vbl_done();  // Wait until VBLANK to avoid corrupting visual memory
 		delay(10);
 	}
 }
 
 void init() {
+    
+	// Load the 'sprites' tiles into sprite memory
+	set_sprite_data(0,22,sprites);
+	set_sprite_data(22,48,font);
 
 	set_bkg_data(0,24,bkgSrpites);
 	for(y = 0; y < 9; y++) {
 		set_bkg_tiles(0,((y*4)-4)+i,20,4,bkgFloor);
 	}
-    
-	// Load the 'sprites' tiles into sprite memory
-	set_sprite_data(0, 22, sprites);
-	
-	i = 0;
-	timer = 0;
-	visible = 0;
 
 	createShip();
 	createBullets();
@@ -64,6 +69,7 @@ void createShip() {
 	ship.pos_y			= 124;
 	ship.direction		= 0;
 	ship.ship_tiles		= 4;
+	ship.lives			= 1;
 	ship.shoot_status	= 0;
 	ship.bullet_tile	= 4;
 	ship.max_bullets	= 5;
@@ -76,15 +82,14 @@ void createShip() {
 }
 
 void createBullets() {
-	UINT8 a;
 	// create the bullets and assign the tiles
-	for(a = 0; a < ship.max_bullets; a++) {
-		bullets[a].tile = ship.bullet_tile + a;
-		bullets[a].pos_x = 0;
-		bullets[a].pos_y = 0;
-		bullets[a].shoot = 0;
+	for(i = 0; i < ship.max_bullets; i++) {
+		bullets[i].tile = ship.bullet_tile + i;
+		bullets[i].pos_x = 0;
+		bullets[i].pos_y = 0;
+		bullets[i].shoot = 0;
 
-		set_sprite_tile(bullets[a].tile,13);
+		set_sprite_tile(bullets[i].tile,13);
 	}
 }
 
@@ -138,15 +143,14 @@ void checkShoot() {
 }
 
 void moveBullets() {
-	UINT8 a;
-	for(a = 0; a <= 5; a++) {
-		if(bullets[a].shoot == 1) {
-			bullets[a].pos_y -= 3;
+	for(i = 0; i <= 5; i++) {
+		if(bullets[i].shoot == 1) {
+			bullets[i].pos_y -= 3;
 
-			if(bullets[a].pos_y > 0 && bullets[a].pos_y < 200) {
-				move_sprite(bullets[a].tile,bullets[a].pos_x,bullets[a].pos_y);
+			if(bullets[i].pos_y > 0 && bullets[i].pos_y < 200) {
+				move_sprite(bullets[i].tile,bullets[i].pos_x,bullets[i].pos_y);
 			} else {
-				bullets[a].shoot = 0;
+				bullets[i].shoot = 0;
 			}
 		}
 	}
