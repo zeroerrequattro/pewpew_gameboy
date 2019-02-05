@@ -29,7 +29,7 @@ void interrupt_lcd();
 //UINT8 limRand(UINT8, UINT8);
 //UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j,enemy_timer,score;
+UINT8 x,y,i,j,bkg_y,enemy_timer,score;
 
 ship_struct ship;
 bullet_struct bullets[5];
@@ -42,15 +42,11 @@ void main() {
 
 	while(1) {
 		checkInput();     // Check for user input (and act on it)
-		moveBkg();
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
+		//moveBkg();
         wait_vbl_done();  // Wait until VBLANK to avoid corrupting visual memory
 		delay(10);
 	}
-}
-
-void interrupt_lcd() {
-	HIDE_WIN;
 }
 
 void init() {
@@ -69,22 +65,28 @@ void init() {
 
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
 
+	bkg_y = 0;
 	score = 0;
 	enemy_timer = 0;
     
 	// Load the 'sprites' tiles into sprite memory
 	set_sprite_data(0,22,sprites);
-	set_sprite_data(22,48,font);
 
 	set_bkg_data(0,24,bkgSrpites);
 	for(y = 0; y < 9; y++) {
 		set_bkg_tiles(0,((y*4)-4)+i,20,4,bkgFloor);
 	}
+	set_win_data(22,48,font);
+	set_win_tiles(0,0,20,3,display);
 
 	createShip();
 	createBullets();
 
 	DISPLAY_ON; // Turn on the display
+}
+
+void interrupt_lcd() {
+	HIDE_WIN;
 }
 
 void createShip() {
@@ -180,12 +182,13 @@ void moveBullets() {
 }
 
 void moveBkg() {
-	scroll_bkg(0,-1); 
+	scroll_bkg(0,-1);
 }
 
 void updateSwitches() {
-	SHOW_SPRITES;
-	SHOW_BKG;
+	SHOW_WIN;
+    SHOW_SPRITES;
+    SHOW_BKG;
 }
 
 void checkInput() {
@@ -195,9 +198,9 @@ void checkInput() {
 	ship.shoot_status = (j & J_A) ? 1 : 0;  // A = shoot
 	ship.direction = (j & J_RIGHT) ? 1 : (j & J_LEFT) ? 2 : 0; // check ship direction
 
-	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; } // UP
+	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; scroll_bkg(0,-1); } // UP
 	if ((j & J_RIGHT) && ship.pos_x < 144)	{ ship.pos_x++; } // RIGHT
-	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; } // DOWN
+	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; scroll_bkg(0,1); } // DOWN
 	if ((j & J_LEFT) && ship.pos_x > 18)	{ ship.pos_x--; } // LEFT
 
 	checkShoot();
