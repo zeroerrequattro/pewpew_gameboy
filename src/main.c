@@ -24,8 +24,6 @@ void moveBullets();
 void moveBkg();
 void updateSwitches();
 
-void interrupt_lcd();
-
 //UINT8 limRand(UINT8, UINT8);
 //UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
@@ -51,42 +49,33 @@ void main() {
 
 void init() {
 
-	STAT_REG = 0x40;	// enable LYC=LY interrupt
-	LY_REG = 0x08;		// Fire LCD Interupt on the 8th scan line
-
 	disable_interrupts();
+	DISPLAY_OFF;
 	
 	SHOW_WIN;
     SHOW_SPRITES;
     SHOW_BKG;
 
-    add_LCD(interrupt_lcd);
-    enable_interrupts();
-
-    set_interrupts(VBL_IFLAG | LCD_IFLAG);
-
-	bkg_y = 0;
-	score = 0;
-	enemy_timer = 0;
-    
-	// Load the 'sprites' tiles into sprite memory
-	set_sprite_data(0,22,sprites);
-
+	set_win_data(22,48,font);
+	set_win_tiles(0,16,20,2,display);
+	
 	set_bkg_data(0,24,bkgSrpites);
 	for(y = 0; y < 9; y++) {
 		set_bkg_tiles(0,((y*4)-4)+i,20,4,bkgFloor);
 	}
-	set_win_data(22,48,font);
-	set_win_tiles(0,0,20,3,display);
+
+    enable_interrupts();
+
+	bkg_y = 0;
+	score = 0;
+	enemy_timer = 0;
+	
+	set_sprite_data(0,22,sprites);
 
 	createShip();
 	createBullets();
 
 	DISPLAY_ON; // Turn on the display
-}
-
-void interrupt_lcd() {
-	HIDE_WIN;
 }
 
 void createShip() {
@@ -198,9 +187,9 @@ void checkInput() {
 	ship.shoot_status = (j & J_A) ? 1 : 0;  // A = shoot
 	ship.direction = (j & J_RIGHT) ? 1 : (j & J_LEFT) ? 2 : 0; // check ship direction
 
-	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; scroll_bkg(0,-1); } // UP
+	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; } // UP
 	if ((j & J_RIGHT) && ship.pos_x < 144)	{ ship.pos_x++; } // RIGHT
-	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; scroll_bkg(0,1); } // DOWN
+	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; } // DOWN
 	if ((j & J_LEFT) && ship.pos_x > 18)	{ ship.pos_x--; } // LEFT
 
 	checkShoot();
