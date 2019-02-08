@@ -14,6 +14,7 @@
 // declaration
 
 void init();
+void showWin();
 void createShip();
 void createBullets();
 void checkInput();
@@ -36,35 +37,46 @@ void main() {
 	init();
 
 	OBP0_REG = 0xD0; //0x1B; 0xE1; change sprite palette 
-	OBP1_REG = 0x1B;
+	//OBP1_REG = 0x1B;
 
 	while(1) {
 		checkInput();     // Check for user input (and act on it)
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
-		//moveBkg();
+		moveBkg();
         wait_vbl_done();  // Wait until VBLANK to avoid corrupting visual memory
 		delay(10);
 	}
 }
 
+void showWin() {
+	HIDE_WIN;
+}
+
 void init() {
+
+    STAT_REG = 0x45;
+    LYC_REG = 0x0F;
 
 	disable_interrupts();
 	DISPLAY_OFF;
 	
+    SHOW_BKG;
 	SHOW_WIN;
     SHOW_SPRITES;
-    SHOW_BKG;
+
+	add_LCD(showWin);
+
+    enable_interrupts();
+
+	set_interrupts( VBL_IFLAG | LCD_IFLAG );
 
 	set_win_data(22,48,font);
-	set_win_tiles(0,16,20,2,display);
+	set_win_tiles(0,0,20,2,display);
 	
 	set_bkg_data(0,24,bkgSrpites);
 	for(y = 0; y < 9; y++) {
 		set_bkg_tiles(0,((y*4)-4)+i,20,4,bkgFloor);
 	}
-
-    enable_interrupts();
 
 	bkg_y = 0;
 	score = 0;
@@ -175,9 +187,9 @@ void moveBkg() {
 }
 
 void updateSwitches() {
+    SHOW_BKG;
 	SHOW_WIN;
     SHOW_SPRITES;
-    SHOW_BKG;
 }
 
 void checkInput() {
