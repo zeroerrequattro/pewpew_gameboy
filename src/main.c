@@ -1,5 +1,5 @@
 #include <gb/gb.h>
-#include <rand.h>
+//#include <rand.h>
 
 #include "structs/ship.c"
 #include "structs/bullet.c"
@@ -55,7 +55,7 @@ void showWin() {
 void init() {
 
     STAT_REG = 0x45;
-    LYC_REG = 0x0F;
+    LYC_REG = 0x00; //0x0F;
 
 	disable_interrupts();
 	DISPLAY_OFF;

@@ -8,9 +8,19 @@
 *.elf
 
 # Linker output
+*.ihx
+*.lk
 *.ilk
 *.map
 *.exp
+
+#gbdk-n outputs
+*.noi
+*.lst
+*.asm
+*.rel
+*.sym
+*.gb
 
 # Precompiled Headers
 *.gch
