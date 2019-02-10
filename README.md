@@ -17,9 +17,9 @@ To run the generated `.gb` file, you need a Gameboy Emulator, like [BGB](http://
 ```bash
 $ make
 ```
+a `build` directory with the rom inside will be created.
+
 ### Remove unnecessary files
 ```bash
 $ make clean
 ```
-
-a `build` directory with the rom inside will be created.
