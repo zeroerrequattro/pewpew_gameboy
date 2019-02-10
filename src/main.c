@@ -16,6 +16,7 @@
 // declaration
 
 void init();
+void locateFontTiles();
 void createShip();
 void createBullets();
 void checkInput();
@@ -25,11 +26,14 @@ void checkShoot();
 void moveBullets();
 void moveBkg();
 void updateSwitches();
+void updateScore();
+void updateLives();
 
 //UINT8 limRand(UINT8, UINT8);
 //UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j,bkg_y,enemy_timer,score;
+UINT8 x,y,i,j,enemy_timer,multiplier,font_tiles[36],max_score,lives;
+UINT32 score;
 
 ship_struct ship;
 bullet_struct bullets[5];
@@ -42,9 +46,10 @@ void main() {
 	//OBP1_REG = 0x1B;
 
 	while(1) {
+		moveBkg();
 		checkInput();     // Check for user input (and act on it)
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
-		moveBkg();
+		updateScore();
         wait_vbl_done();  // Wait until VBLANK to avoid corrupting visual memory
 		delay(10);
 	}
@@ -79,7 +84,7 @@ void init() {
 	set_bkg_data(0,18,bkgSprites);
 	set_win_data(18,42,font);
 	
-	//set_win_tiles(0,0,21,2,display);
+	set_win_tiles(0,0,21,2,display);
 
 	//WX_REG = 0x00;
 	WY_REG = 0x80;
@@ -88,17 +93,37 @@ void init() {
 		set_bkg_tiles(0,((y*4)-4)+i,20,4,bkgFloor);
 	}
 
-	bkg_y = 0;
 	score = 0;
 	enemy_timer = 0;
-	
+	lives = 2;
+
+	locateFontTiles();
+
 	set_sprite_data(0,25,sprites);
 	set_sprite_data(25,42,font);
+
+	updateScore();
+	updateLives();
+
+	move_sprite(9,0x98,0x94);
+	move_sprite(10,0x90,0x94);
+	move_sprite(11,0x88,0x94);
+	move_sprite(12,0x80,0x94);
+	move_sprite(13,0x78,0x94);
+
+	move_sprite(14,0x0D,0x94);
+	move_sprite(15,0x16,0x94);
 
 	createShip();
 	createBullets();
 
 	DISPLAY_ON; // Turn on the display
+}
+
+void locateFontTiles() {
+	for (i = 0; i < 36; i++) {
+		font_tiles[i] = 25 + i;
+	}
 }
 
 void createShip() {
@@ -197,12 +222,6 @@ void moveBkg() {
 	scroll_bkg(0,-1);
 }
 
-void updateSwitches() {
-    SHOW_BKG;
-	SHOW_WIN;
-    SHOW_SPRITES;
-}
-
 void checkInput() {
 
 	j = joypad();
@@ -219,6 +238,26 @@ void checkInput() {
 	checkDirection();
 	moveBullets();
 	moveShip();
+}
+
+void updateSwitches() {
+    SHOW_BKG;
+	SHOW_WIN;
+    SHOW_SPRITES;
+}
+
+void updateScore() {
+	set_sprite_tile(9,font_tiles[0]);
+	set_sprite_tile(10,font_tiles[1]);
+	set_sprite_tile(11,font_tiles[2]);
+	set_sprite_tile(12,font_tiles[3]);
+	set_sprite_tile(13,font_tiles[4]);
+}
+
+void updateLives() {
+	for(i = 1; i < 3; i++) {
+		set_sprite_tile((13 + i),(i <= lives) ? 18 : 65);
+	}
 }
 
 /*
