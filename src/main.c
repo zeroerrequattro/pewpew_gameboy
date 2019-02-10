@@ -81,7 +81,7 @@ void init() {
 	
 	//set_win_tiles(0,0,21,2,display);
 
-	WX_REG = 0x00;
+	//WX_REG = 0x00;
 	WY_REG = 0x80;
 
 	for(y = 0; y < 9; y++) {
