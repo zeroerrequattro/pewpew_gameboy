@@ -1,8 +1,10 @@
 #include <gb/gb.h>
+#include <gb/font.h>
 //#include <rand.h>
 
 #include "structs/ship.c"
 #include "structs/bullet.c"
+#include "structs/text.c"
 
 #include "sprites/bkgSprites.c"
 #include "sprites/sprites.c"
@@ -14,7 +16,6 @@
 // declaration
 
 void init();
-void showWin();
 void createShip();
 void createBullets();
 void checkInput();
@@ -32,6 +33,7 @@ UINT8 x,y,i,j,bkg_y,enemy_timer,score;
 
 ship_struct ship;
 bullet_struct bullets[5];
+text_struct text;
 
 void main() {
 	init();
@@ -48,32 +50,40 @@ void main() {
 	}
 }
 
-void showWin() {
-	HIDE_WIN;
-}
-
 void init() {
 
-    STAT_REG = 0x45;
-    LYC_REG = 0x0F;
+	LCDC_REG = 0x63; // 01100011
+	/*
+	* LCD        = Off		0
+	* WindowBank = 0x9C00	1
+	* Window     = On		1
+	* BG Chr     = 0x8800	0
+	* BG Bank    = 0x9800	0
+	* OBJ        = 8x8		0
+	* OBJ        = On		1
+	* BG         = On		1
+	*/
 
 	disable_interrupts();
+
 	DISPLAY_OFF;
 	
     SHOW_BKG;
 	SHOW_WIN;
     SHOW_SPRITES;
+    
+	font_init();
 
-	add_LCD(showWin);
+	enable_interrupts();
 
-    enable_interrupts();
-
-	set_interrupts( VBL_IFLAG | LCD_IFLAG );
-
-	set_win_data(22,48,font);
-	set_win_tiles(0,0,20,2,display);
+	set_bkg_data(0,18,bkgSprites);
+	set_win_data(18,42,font);
 	
-	set_bkg_data(0,24,bkgSrpites);
+	//set_win_tiles(0,0,21,2,display);
+
+	WX_REG = 0x00;
+	WY_REG = 0x80;
+
 	for(y = 0; y < 9; y++) {
 		set_bkg_tiles(0,((y*4)-4)+i,20,4,bkgFloor);
 	}
@@ -82,7 +92,8 @@ void init() {
 	score = 0;
 	enemy_timer = 0;
 	
-	set_sprite_data(0,22,sprites);
+	set_sprite_data(0,25,sprites);
+	set_sprite_data(25,42,font);
 
 	createShip();
 	createBullets();
