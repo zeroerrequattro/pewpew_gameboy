@@ -1,5 +1,4 @@
 #include <gb/gb.h>
-#include <gb/font.h>
 //#include <rand.h>
 
 #include "structs/ship.c"
@@ -16,6 +15,7 @@
 // declaration
 
 void init();
+void initScore();
 void locateFontTiles();
 void createShip();
 void createBullets();
@@ -26,14 +26,16 @@ void checkShoot();
 void moveBullets();
 void moveBkg();
 void updateSwitches();
-void updateScore();
 void updateLives();
 
+
+void updateScore( UINT8 );
 //UINT8 limRand(UINT8, UINT8);
 //UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j,enemy_timer,multiplier,font_tiles[36],max_score,lives;
-UINT32 score;
+UINT8 x,y,i,j,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
+UINT32 score;	
+UINT32 tmp_score;
 
 ship_struct ship;
 bullet_struct bullets[5];
@@ -49,7 +51,6 @@ void main() {
 		moveBkg();
 		checkInput();     // Check for user input (and act on it)
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
-		updateScore();
         wait_vbl_done();  // Wait until VBLANK to avoid corrupting visual memory
 		delay(10);
 	}
@@ -76,8 +77,6 @@ void init() {
     SHOW_BKG;
 	SHOW_WIN;
     SHOW_SPRITES;
-    
-	font_init();
 
 	enable_interrupts();
 
@@ -96,23 +95,26 @@ void init() {
 	score = 0;
 	enemy_timer = 0;
 	lives = 2;
+	score_tile = 9;
 
 	locateFontTiles();
 
 	set_sprite_data(0,25,sprites);
 	set_sprite_data(25,42,font);
 
-	updateScore();
+	initScore();
 	updateLives();
 
+	// score sprites
 	move_sprite(9,0x98,0x94);
 	move_sprite(10,0x90,0x94);
 	move_sprite(11,0x88,0x94);
 	move_sprite(12,0x80,0x94);
 	move_sprite(13,0x78,0x94);
 
-	move_sprite(14,0x0D,0x94);
-	move_sprite(15,0x16,0x94);
+	// lives sprites
+	move_sprite(14,0x0D,0x95);
+	move_sprite(15,0x16,0x95);
 
 	createShip();
 	createBullets();
@@ -229,6 +231,7 @@ void checkInput() {
 	ship.shoot_status = (j & J_A) ? 1 : 0;  // A = shoot
 	ship.direction = (j & J_RIGHT) ? 1 : (j & J_LEFT) ? 2 : 0; // check ship direction
 
+	if(j & J_B) { updateScore(2); }
 	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; } // UP
 	if ((j & J_RIGHT) && ship.pos_x < 144)	{ ship.pos_x++; } // RIGHT
 	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; } // DOWN
@@ -246,12 +249,23 @@ void updateSwitches() {
     SHOW_SPRITES;
 }
 
-void updateScore() {
-	set_sprite_tile(9,font_tiles[0]);
-	set_sprite_tile(10,font_tiles[1]);
-	set_sprite_tile(11,font_tiles[2]);
-	set_sprite_tile(12,font_tiles[3]);
-	set_sprite_tile(13,font_tiles[4]);
+void initScore() {
+	for (i = 9; i < 14; i++) {
+		set_sprite_tile(i,25);
+	}
+}
+
+void updateScore( UINT8 point ) {
+	score += point;
+	tmp_score = score;
+	while (tmp_score > 0) {
+		digit = tmp_score % 10;
+		// do something with digit
+		set_sprite_tile(score_tile,font_tiles[digit]);
+		score_tile++;
+		tmp_score /= 10;
+	}
+	score_tile = 9;
 }
 
 void updateLives() {
