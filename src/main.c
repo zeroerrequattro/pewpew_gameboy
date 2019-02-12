@@ -33,7 +33,7 @@ void updateScore( UINT8 );
 //UINT8 limRand(UINT8, UINT8);
 //UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
+UINT8 x,y,i,j,score_pos_x,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
 UINT32 score;	
 UINT32 tmp_score;
 
@@ -105,12 +105,12 @@ void init() {
 	initScore();
 	updateLives();
 
-	// score sprites
-	move_sprite(9,0x98,0x94);
-	move_sprite(10,0x90,0x94);
-	move_sprite(11,0x88,0x94);
-	move_sprite(12,0x80,0x94);
-	move_sprite(13,0x78,0x94);
+	score_pos_x = 0x98;
+	// position score sprites
+	for(i = 9; i < 14; i++ ) {
+		move_sprite(i,score_pos_x,0x94);
+		score_pos_x -= 0x08;
+	}
 
 	// lives sprites
 	move_sprite(14,0x0D,0x95);
@@ -258,10 +258,14 @@ void initScore() {
 void updateScore( UINT8 point ) {
 	score += point;
 	tmp_score = score;
+
+	// split tmp_score by digits
+	// and put them in right place
 	while (tmp_score > 0) {
 		digit = tmp_score % 10;
-		// do something with digit
+
 		set_sprite_tile(score_tile,font_tiles[digit]);
+		
 		score_tile++;
 		tmp_score /= 10;
 	}
