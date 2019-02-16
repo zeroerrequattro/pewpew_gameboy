@@ -1,9 +1,9 @@
 #include <gb/gb.h>
-//#include <rand.h>
+#include <gb/rand.h>
 
 #include "structs/ship.c"
 #include "structs/bullet.c"
-#include "structs/text.c"
+#include "structs/enemy01.c"
 
 #include "sprites/bkgSprites.c"
 #include "sprites/sprites.c"
@@ -28,18 +28,17 @@ void moveBkg();
 void updateSwitches();
 void updateLives();
 
-
 void updateScore( UINT8 );
-//UINT8 limRand(UINT8, UINT8);
-//UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
+UINT8 limRand(UINT8, UINT8);
+UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
 UINT8 x,y,i,j,score_pos_x,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
 UINT32 score;	
 UINT32 tmp_score;
 
 ship_struct ship;
+enemy_01_struct enemy_01;
 bullet_struct bullets[5];
-text_struct text;
 
 void main() {
 	init();
@@ -52,7 +51,6 @@ void main() {
 		checkInput();     // Check for user input (and act on it)
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
         wait_vbl_done();  // Wait until VBLANK to avoid corrupting visual memory
-		delay(10);
 	}
 }
 
@@ -99,8 +97,8 @@ void init() {
 
 	locateFontTiles();
 
-	set_sprite_data(0,25,sprites);
-	set_sprite_data(25,42,font);
+	set_sprite_data(0,29,sprites);
+	set_sprite_data(29,42,font);
 
 	initScore();
 	updateLives();
@@ -124,7 +122,7 @@ void init() {
 
 void locateFontTiles() {
 	for (i = 0; i < 36; i++) {
-		font_tiles[i] = 25 + i;
+		font_tiles[i] = 29 + i;
 	}
 }
 
@@ -231,10 +229,10 @@ void checkInput() {
 	ship.shoot_status = (j & J_A) ? 1 : 0;  // A = shoot
 	ship.direction = (j & J_RIGHT) ? 1 : (j & J_LEFT) ? 2 : 0; // check ship direction
 
-	if(j & J_B) { updateScore(2); }
+	//if(j & J_B) { updateScore(2); }
 	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; } // UP
 	if ((j & J_RIGHT) && ship.pos_x < 144)	{ ship.pos_x++; } // RIGHT
-	if ((j & J_DOWN) && ship.pos_y < 136)	{ ship.pos_y++; } // DOWN
+	if ((j & J_DOWN) && ship.pos_y < 127)	{ ship.pos_y++; } // DOWN
 	if ((j & J_LEFT) && ship.pos_x > 18)	{ ship.pos_x--; } // LEFT
 
 	checkShoot();
@@ -251,7 +249,7 @@ void updateSwitches() {
 
 void initScore() {
 	for (i = 9; i < 14; i++) {
-		set_sprite_tile(i,25);
+		set_sprite_tile(i,29);
 	}
 }
 
@@ -278,9 +276,8 @@ void updateLives() {
 	}
 }
 
-/*
 UINT8 limRand(UINT8 min, UINT8 max) {
-	return rand() % max + min;
+	return _rand() % max + min;
 }
 
 // Check if two rectangles from x1,y1, and extending out h1, h2, 
@@ -291,4 +288,4 @@ UINT8 collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2,
 	} else {
 		return 0;
 	}
-}*/
+}
