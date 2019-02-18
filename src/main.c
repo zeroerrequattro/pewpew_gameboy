@@ -15,6 +15,7 @@
 // declaration
 
 void init();
+void timer_isr();
 void initScore();
 void locateFontTiles();
 void createShip();
@@ -33,8 +34,7 @@ UINT8 limRand(UINT8, UINT8);
 UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
 UINT8 x,y,i,j,score_pos_x,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
-UINT32 score;	
-UINT32 tmp_score;
+UINT32 score,tmp_score,timer;
 
 ship_struct ship;
 enemy_01_struct enemy_01;
@@ -67,6 +67,10 @@ void init() {
 	* OBJ        = On		1
 	* BG         = On		1
 	*/
+	/* Set TMA to divide clock by 0x100 */
+	TMA_REG = 0x00U;
+	/* Set clock to 4096 Hertz */
+	TAC_REG = 0x04U;
 
 	disable_interrupts();
 
@@ -76,7 +80,11 @@ void init() {
 	SHOW_WIN;
     SHOW_SPRITES;
 
+    add_TIM(timer_isr);
+
 	enable_interrupts();
+
+	set_interrupts( VBL_IFLAG | TIM_IFLAG );
 
 	set_bkg_data(0,18,bkgSprites);
 	set_win_data(18,42,font);
@@ -118,6 +126,10 @@ void init() {
 	createBullets();
 
 	DISPLAY_ON; // Turn on the display
+}
+
+void timer_isr() {
+	timer++;
 }
 
 void locateFontTiles() {
@@ -229,7 +241,7 @@ void checkInput() {
 	ship.shoot_status = (j & J_A) ? 1 : 0;  // A = shoot
 	ship.direction = (j & J_RIGHT) ? 1 : (j & J_LEFT) ? 2 : 0; // check ship direction
 
-	//if(j & J_B) { updateScore(2); }
+	//if(j & J_B) { updateScore(); }
 	if ((j & J_UP) && ship.pos_y > 24)		{ ship.pos_y--; } // UP
 	if ((j & J_RIGHT) && ship.pos_x < 144)	{ ship.pos_x++; } // RIGHT
 	if ((j & J_DOWN) && ship.pos_y < 127)	{ ship.pos_y++; } // DOWN
