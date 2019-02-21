@@ -1,6 +1,10 @@
 #include <gb/gb.h>
 #include <gb/rand.h>
 
+#include "utils/count.c"
+
+#include "enemiesList.c"
+
 #include "structs/ship.c"
 #include "structs/bullet.c"
 #include "structs/enemy01.c"
@@ -22,10 +26,12 @@ void createShip();
 void createBullets();
 void checkInput();
 void checkDirection();
-void moveShip();
 void checkShoot();
-void moveBullets();
+void enemiesRoutine();
 void moveBkg();
+void moveShip();
+void moveBullets();
+void moveEnemies();
 void updateSwitches();
 void updateLives();
 
@@ -36,8 +42,10 @@ UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 UINT8 x,y,i,j,score_pos_x,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
 UINT32 score,tmp_score,timer,clock_counter;
 
+UWORD array_size;
+
 ship_struct ship;
-enemy_01_struct enemy_01;
+enemy_01_struct enemies[3];
 bullet_struct bullets[5];
 
 void main() {
@@ -48,6 +56,7 @@ void main() {
 
 	while(1) {
 		moveBkg();
+		enemiesRoutine();
 		checkInput();     // Check for user input (and act on it)
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
         wait_vbl_done();  // Wait until VBLANK to avoid corrupting visual memory
@@ -151,8 +160,9 @@ void createShip() {
 	ship.bullet_tile	= 4;
 	ship.max_bullets	= 5;
 	ship.active_bullets	= 0;
-	ship.bullet_timer	= 0;
-	ship.bullet_trigger = 25;
+	ship.bullet_power	= 1;
+	ship.bullet_count	= 0;
+	ship.bullet_limit = 25;
 
 	checkDirection();
 	moveShip();
@@ -201,7 +211,7 @@ void moveShip() {
 
 void checkShoot() {
 	if(ship.shoot_status == 1) {
-		if((ship.bullet_timer == 0 || ship.bullet_timer >= ship.bullet_trigger) && ship.active_bullets < ship.max_bullets) {
+		if((ship.bullet_count == 0 || ship.bullet_count >= ship.bullet_limit) && ship.active_bullets < ship.max_bullets) {
 			bullets[ship.active_bullets].shoot = 1;
 			bullets[ship.active_bullets].pos_x = ship.pos_x + 4;
 			bullets[ship.active_bullets].pos_y = ship.pos_y - 8;
@@ -211,11 +221,11 @@ void checkShoot() {
 				ship.active_bullets = 0;
 			}
 			
-			ship.bullet_timer = 0;
+			ship.bullet_count = 0;
 		}
-		ship.bullet_timer++;
+		ship.bullet_count++;
 	} else {
-		ship.bullet_timer = 0;
+		ship.bullet_count = 0;
 	}
 }
 
@@ -235,6 +245,37 @@ void moveBullets() {
 
 void moveBkg() {
 	scroll_bkg(0,-1);
+}
+
+void enemiesRoutine() {
+	if(timer > 3) {
+		for (i = 0; i < 3; i++) {
+			if(enemiesList[enemy_timer][i][5] == 0) {
+
+				enemiesList[enemy_timer][i][5] = 1;
+				enemies[i].type		= enemiesList[enemy_timer][i][0];
+				enemies[i].health	= enemiesList[enemy_timer][i][1];
+				enemies[i].points	= enemiesList[enemy_timer][i][2];
+				enemies[i].pos_x	= enemiesList[enemy_timer][i][3];
+				enemies[i].pos_y	= enemiesList[enemy_timer][i][4];
+				enemies[i].visible	= timer;
+
+				set_sprite_tile((16 + i),(25 + enemies[i].type));
+
+			} else {
+				if((enemies[i].pos_y < 80 || timer > (enemies[i].visible + 5)) && enemies[i].visible != 0) {
+					enemies[i].pos_y++;
+
+					if(enemies[i].pos_y > 144) {
+						enemiesList[enemy_timer][i][5] = 0;
+						enemies[i].pos_y = 0;
+						enemies[i].visible = 0;
+					} 
+				}
+			}
+			move_sprite((16 + i),enemies[i].pos_x,enemies[i].pos_y);
+		}
+	}
 }
 
 void checkInput() {

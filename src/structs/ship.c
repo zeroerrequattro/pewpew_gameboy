@@ -12,6 +12,6 @@ typedef struct {
 	UINT8 max_bullets;
 	UINT8 bullet_power;
 	UINT8 active_bullets;
-	UINT8 bullet_timer;
-	UINT8 bullet_trigger;
+	UINT8 bullet_count;
+	UINT8 bullet_limit;
 } ship_struct;
