@@ -164,7 +164,7 @@ void createShip() {
 	ship.bullet_count	= 0;
 	ship.bullet_limit = 25;
 
-	checkDirection();
+	for (i = 0; i < 4; i++) { set_sprite_tile(i,i); }
 	moveShip();
 }
 
