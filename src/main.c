@@ -1,8 +1,6 @@
 #include <gb/gb.h>
 #include <gb/rand.h>
 
-#include "utils/count.c"
-
 #include "enemiesList.c"
 
 #include "structs/ship.c"
@@ -39,7 +37,7 @@ void updateScore( UINT8 );
 UINT8 limRand(UINT8, UINT8);
 UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,j,score_pos_x,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
+UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
 UINT32 score,tmp_score,timer,clock_counter;
 
 UWORD array_size;
@@ -267,12 +265,37 @@ void enemiesRoutine() {
 					enemies[i].pos_y++;
 
 					if(enemies[i].pos_y > 144) {
-						enemiesList[enemy_timer][i][5] = 0;
+						//enemiesList[enemy_timer][i][5] = 0;
 						enemies[i].pos_y = 0;
 						enemies[i].visible = 0;
-					} 
+					}
+				}
+
+				// check collisions to bullets and ship
+				for(h = 0; h < ship.max_bullets; h++){
+
+					// collision to bullets
+					if(collisionCheck(enemies[i].pos_x,enemies[i].pos_y,8,8,bullets[h].pos_x,bullets[h].pos_y,8,8) == 1 && enemies[i].visible == 1) {
+						bullets[h].pos_x = 0;
+						enemies[i].health -= ship.bullet_power;
+
+						if(enemies[i].health <= 0) {
+							enemies[i].visible = 0;
+							enemies[i].pos_y = 0;
+							updateScore(enemies[i].points);
+						}
+					}
+
+					// collision to ship
+					if(collisionCheck(enemies[i].pos_x,enemies[i].pos_y,8,8,ship.pos_x,ship.pos_y,16,16) == 1) {
+						enemies[i].visible = 0;
+						enemies[i].pos_y = 0;
+						lives--;
+						updateLives();
+					}
 				}
 			}
+
 			move_sprite((16 + i),enemies[i].pos_x,enemies[i].pos_y);
 		}
 	}
