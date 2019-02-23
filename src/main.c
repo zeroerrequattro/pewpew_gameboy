@@ -1,11 +1,10 @@
 #include <gb/gb.h>
-#include <gb/rand.h>
 
 #include "enemiesList.c"
 
 #include "structs/ship.c"
 #include "structs/bullet.c"
-#include "structs/enemy01.c"
+#include "structs/enemy.c"
 
 #include "sprites/bkgSprites.c"
 #include "sprites/sprites.c"
@@ -34,16 +33,15 @@ void updateSwitches();
 void updateLives();
 
 void updateScore( UINT8 );
-UINT8 limRand(UINT8, UINT8);
 UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,multiplier,font_tiles[36],lives;
+UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,check_enemies,enemy_quota,multiplier,font_tiles[36],lives;
 UINT32 score,tmp_score,timer,clock_counter;
 
 UWORD array_size;
 
 ship_struct ship;
-enemy_01_struct enemies[3];
+enemy_struct enemies[3];
 bullet_struct bullets[5];
 
 void main() {
@@ -107,6 +105,8 @@ void init() {
 
 	score = 0;
 	enemy_timer = 0;
+	enemy_quota = 0;
+	multiplier = 1;
 	lives = 2;
 	score_tile = 9;
 
@@ -247,36 +247,47 @@ void moveBkg() {
 
 void enemiesRoutine() {
 	if(timer > 3) {
+		check_enemies = 1; // set checker to true;
+
 		for (i = 0; i < 3; i++) {
 			if(enemiesList[enemy_timer][i][5] == 0) {
-
 				enemiesList[enemy_timer][i][5] = 1;
-				enemies[i].tile		= 16 + i;
-				enemies[i].type		= 25 + enemiesList[enemy_timer][i][0];
-				enemies[i].health	= enemiesList[enemy_timer][i][1];
-				enemies[i].points	= enemiesList[enemy_timer][i][2];
-				enemies[i].pos_x	= enemiesList[enemy_timer][i][3];
-				enemies[i].pos_y	= enemiesList[enemy_timer][i][4];
-				enemies[i].visible	= timer;
+				enemies[i].tile			= 16 + i;
+				enemies[i].type			= 25 + enemiesList[enemy_timer][i][0];
+				enemies[i].health		= enemiesList[enemy_timer][i][1];
+				enemies[i].points		= enemiesList[enemy_timer][i][2];
+				enemies[i].pos_x		= enemiesList[enemy_timer][i][3];
+				enemies[i].pos_y		= enemiesList[enemy_timer][i][4];
+				enemies[i].visible		= timer;
+				enemies[i].speed		= enemiesList[enemy_timer][i][6];
+				enemies[i].wait_time	= enemiesList[enemy_timer][i][7];
+				enemies[i].wait_position = enemiesList[enemy_timer][i][8];
+				enemies[i].repeat		= enemiesList[enemy_timer][i][9];
 
 				set_sprite_tile(enemies[i].tile,enemies[i].type);
 
 			} else {
-				if((enemies[i].pos_y < 80 || timer > (enemies[i].visible + 5)) && enemies[i].visible != 0) {
-					enemies[i].pos_y++;
+				
+				if( ( enemies[i].wait_time == 0 ||
+					( enemies[i].pos_y < enemies[i].wait_position || 
+					  timer > ( enemies[i].visible + enemies[i].wait_time )))
+					&& enemies[i].visible != 0
+				) {
+					enemies[i].pos_y += enemies[i].speed;
+				}
 
-					if(enemies[i].pos_y > 144) {
-						//enemiesList[enemy_timer][i][5] = 0;
-						enemies[i].pos_y = 0;
+				if(enemies[i].pos_y > 144) {
+					enemies[i].pos_y = 0;
+					if(enemies[i].repeat > 0) {
+						enemies[i].repeat--;
+					} else {
 						enemies[i].visible = 0;
 					}
 				}
 
 				// check collisions to bullets and ship
 				for(h = 0; h < ship.max_bullets; h++){
-
-					// collision to bullets
-					if(
+					if( // collision to bullets
 						collisionCheck(
 							enemies[i].pos_x,
 							enemies[i].pos_y,
@@ -295,12 +306,12 @@ void enemiesRoutine() {
 						if(enemies[i].health <= 0) {
 							enemies[i].visible = 0;
 							enemies[i].pos_y = 0;
+							enemy_quota++;
 							updateScore(enemies[i].points);
 						}
 					}
 
-					// collision to ship
-					if(
+					if( // collision to ship
 						collisionCheck(
 							enemies[i].pos_x,
 							enemies[i].pos_y,
@@ -314,13 +325,20 @@ void enemiesRoutine() {
 					) {
 						enemies[i].visible = 0;
 						enemies[i].pos_y = 0;
+						multiplier = 1;
 						lives--;
 						updateLives();
 					}
 				}
 			}
 
+			if(enemies[i].visible > 0) { check_enemies = 0; }
+
 			move_sprite((16 + i),enemies[i].pos_x,enemies[i].pos_y);
+		}
+
+		if(check_enemies == 1) {
+			enemy_timer++;
 		}
 	}
 }
@@ -356,7 +374,7 @@ void initScore() {
 }
 
 void updateScore( UINT8 point ) {
-	score += point;
+	score += (point * multiplier);
 	tmp_score = score;
 
 	// split tmp_score by digits
@@ -376,10 +394,6 @@ void updateLives() {
 	for(i = 1; i < 3; i++) {
 		set_sprite_tile((13 + i),(i <= lives) ? 18 : 65);
 	}
-}
-
-UINT8 limRand(UINT8 min, UINT8 max) {
-	return _rand() % max + min;
 }
 
 // Check if two rectangles from x1,y1, and extending out h1, h2, 
