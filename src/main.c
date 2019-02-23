@@ -251,14 +251,15 @@ void enemiesRoutine() {
 			if(enemiesList[enemy_timer][i][5] == 0) {
 
 				enemiesList[enemy_timer][i][5] = 1;
-				enemies[i].type		= enemiesList[enemy_timer][i][0];
+				enemies[i].tile		= 16 + i;
+				enemies[i].type		= 25 + enemiesList[enemy_timer][i][0];
 				enemies[i].health	= enemiesList[enemy_timer][i][1];
 				enemies[i].points	= enemiesList[enemy_timer][i][2];
 				enemies[i].pos_x	= enemiesList[enemy_timer][i][3];
 				enemies[i].pos_y	= enemiesList[enemy_timer][i][4];
 				enemies[i].visible	= timer;
 
-				set_sprite_tile((16 + i),(25 + enemies[i].type));
+				set_sprite_tile(enemies[i].tile,enemies[i].type);
 
 			} else {
 				if((enemies[i].pos_y < 80 || timer > (enemies[i].visible + 5)) && enemies[i].visible != 0) {
@@ -275,7 +276,19 @@ void enemiesRoutine() {
 				for(h = 0; h < ship.max_bullets; h++){
 
 					// collision to bullets
-					if(collisionCheck(enemies[i].pos_x,enemies[i].pos_y,8,8,bullets[h].pos_x,bullets[h].pos_y,8,8) == 1 && enemies[i].visible == 1) {
+					if(
+						collisionCheck(
+							enemies[i].pos_x,
+							enemies[i].pos_y,
+							8,
+							8,
+							bullets[h].pos_x,
+							bullets[h].pos_y,
+							8,
+							8
+						) == 1
+						&& enemies[i].visible > 0
+					) {
 						bullets[h].pos_x = 0;
 						enemies[i].health -= ship.bullet_power;
 
@@ -287,7 +300,18 @@ void enemiesRoutine() {
 					}
 
 					// collision to ship
-					if(collisionCheck(enemies[i].pos_x,enemies[i].pos_y,8,8,ship.pos_x,ship.pos_y,16,16) == 1) {
+					if(
+						collisionCheck(
+							enemies[i].pos_x,
+							enemies[i].pos_y,
+							8,
+							8,
+							ship.pos_x,
+							ship.pos_y,
+							16,
+							16
+						) == 1
+					) {
 						enemies[i].visible = 0;
 						enemies[i].pos_y = 0;
 						lives--;
