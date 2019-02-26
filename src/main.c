@@ -249,7 +249,7 @@ void enemiesRoutine() {
 	if(timer > 3) {
 		check_enemies = 1; // set checker to true;
 
-		for (i = 0; i < 6; i++) {
+		for (i = 0; i < 3; i++) {
 			if(enemiesList[enemy_timer][i][5] == 0) {
 				enemiesList[enemy_timer][i][5] = 1;
 				enemies[i].tile			= 16 + i;
