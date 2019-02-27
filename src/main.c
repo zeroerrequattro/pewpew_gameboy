@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include "gfx.h"
 
 #include "enemiesList.c"
 
@@ -17,6 +18,7 @@
 
 void init();
 void timer_isr();
+void wave_lcd();
 void initScore();
 void locateFontTiles();
 void createShip();
@@ -38,6 +40,7 @@ UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,check_enemies,enemy_quota,multiplier,font_tiles[36],lives;
 UINT32 score,tmp_score,timer,clock_counter;
 
+UBYTE lcd_counter;
 UWORD array_size;
 
 ship_struct ship;
@@ -51,7 +54,7 @@ void main() {
 	//OBP1_REG = 0x1B;
 
 	while(1) {
-		moveBkg();
+		//moveBkg();
 		enemiesRoutine();
 		checkInput();     // Check for user input (and act on it)
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
@@ -86,10 +89,11 @@ void init() {
     SHOW_SPRITES;
 
     add_TIM(timer_isr);
+	add_LCD(wave_lcd);
 
 	enable_interrupts();
 
-	set_interrupts( VBL_IFLAG | TIM_IFLAG );
+	set_interrupts( VBL_IFLAG | TIM_IFLAG | LCD_IFLAG );
 
 	set_bkg_data(0,18,bkgSprites);
 	set_win_data(18,42,font);
@@ -139,6 +143,15 @@ void timer_isr() {
 	clock_counter++;
 	if(clock_counter % 16 == 0){
 		timer++;
+	}
+}
+
+void wave_lcd(void) NONBANKED {
+	HIDE_BKG;
+	SCY_REG = fx[lcd_counter]>>1;
+	lcd_counter++;
+	if(lcd_counter >= 109) {
+		lcd_counter = 0;
 	}
 }
 
@@ -242,7 +255,7 @@ void moveBullets() {
 }
 
 void moveBkg() {
-	scroll_bkg(0,-1);
+	//scroll_bkg(0,-1);
 }
 
 void enemiesRoutine() {
@@ -279,7 +292,7 @@ void enemiesRoutine() {
 
 				if(enemies[i].pos_y > 144) {
 					enemies[i].pos_y = 0;
-					
+
 					if(enemies[i].repeat > 0) {
 						enemies[i].repeat--;
 					} else {
