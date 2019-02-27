@@ -268,16 +268,18 @@ void enemiesRoutine() {
 
 			} else {
 				
-				if( ( enemies[i].wait_time == 0 ||
-					( enemies[i].pos_y < enemies[i].wait_position || 
-					  timer > ( enemies[i].visible + enemies[i].wait_time )))
-					&& enemies[i].visible != 0
+				if(
+					( enemies[i].wait_time == 0 ||
+						( enemies[i].pos_y < enemies[i].wait_position || 
+					  	  timer > ( enemies[i].visible + enemies[i].wait_time ))
+					) && enemies[i].visible != 0
 				) {
 					enemies[i].pos_y += enemies[i].speed;
 				}
 
 				if(enemies[i].pos_y > 144) {
 					enemies[i].pos_y = 0;
+					
 					if(enemies[i].repeat > 0) {
 						enemies[i].repeat--;
 					} else {
