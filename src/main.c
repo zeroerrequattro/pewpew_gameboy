@@ -1,5 +1,4 @@
 #include <gb/gb.h>
-#include "gfx.h"
 
 #include "enemiesList.c"
 
@@ -18,7 +17,6 @@
 
 void init();
 void timer_isr();
-void wave_lcd();
 void initScore();
 void locateFontTiles();
 void createShip();
@@ -37,11 +35,10 @@ void updateLives();
 void updateScore( UINT8 );
 UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,check_enemies,enemy_quota,multiplier,font_tiles[36],lives;
+UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,check_enemies,enemy_quota,multiplier,font_tiles[36],lives,LCD_FR;
 UINT32 score,tmp_score,timer,clock_counter;
 
-UBYTE lcd_counter;
-UWORD array_size;
+const UINT8 wave[6] = {0,1,2,3,2,1};
 
 ship_struct ship;
 enemy_struct enemies[3];
@@ -54,6 +51,9 @@ void main() {
 	//OBP1_REG = 0x1B;
 
 	while(1) {
+		if(STAT_REG & 1) SCX_REG = wave[LCD_FR];
+		if(STAT_REG & 2) LCD_FR++;
+		if(LCD_FR == 6) LCD_FR = 0;
 		//moveBkg();
 		enemiesRoutine();
 		checkInput();     // Check for user input (and act on it)
@@ -89,11 +89,10 @@ void init() {
     SHOW_SPRITES;
 
     add_TIM(timer_isr);
-	add_LCD(wave_lcd);
 
 	enable_interrupts();
 
-	set_interrupts( VBL_IFLAG | TIM_IFLAG | LCD_IFLAG );
+	set_interrupts( VBL_IFLAG | TIM_IFLAG );
 
 	set_bkg_data(0,18,bkgSprites);
 	set_win_data(18,42,font);
@@ -139,19 +138,10 @@ void init() {
 	DISPLAY_ON; // Turn on the display
 }
 
-void timer_isr() {
+void timer_isr() NONBANKED {
 	clock_counter++;
 	if(clock_counter % 16 == 0){
 		timer++;
-	}
-}
-
-void wave_lcd(void) NONBANKED {
-	HIDE_BKG;
-	SCY_REG = fx[lcd_counter]>>1;
-	lcd_counter++;
-	if(lcd_counter >= 109) {
-		lcd_counter = 0;
 	}
 }
 
@@ -173,7 +163,7 @@ void createShip() {
 	ship.active_bullets	= 0;
 	ship.bullet_power	= 1;
 	ship.bullet_count	= 0;
-	ship.bullet_limit = 25;
+	ship.bullet_limit 	= 25;
 
 	for (i = 0; i < 4; i++) { set_sprite_tile(i,i); }
 	moveShip();
