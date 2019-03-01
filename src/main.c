@@ -35,10 +35,8 @@ void updateLives();
 void updateScore( UINT8 );
 UINT8 collisionCheck(UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8, UINT8);
 
-UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,check_enemies,enemy_quota,multiplier,font_tiles[36],lives,LCD_FR;
+UINT8 x,y,i,h,j,score_pos_x,score_tile,digit,max_score,enemy_timer,check_enemies,enemy_quota,multiplier,font_tiles[36],lives;
 UINT32 score,tmp_score,timer,clock_counter;
-
-const UINT8 wave[6] = {0,1,2,3,2,1};
 
 ship_struct ship;
 enemy_struct enemies[3];
@@ -51,10 +49,7 @@ void main() {
 	//OBP1_REG = 0x1B;
 
 	while(1) {
-		if(STAT_REG & 1) SCX_REG = wave[LCD_FR];
-		if(STAT_REG & 2) LCD_FR++;
-		if(LCD_FR == 6) LCD_FR = 0;
-		//moveBkg();
+		moveBkg();
 		enemiesRoutine();
 		checkInput();     // Check for user input (and act on it)
 		updateSwitches(); // Make sure the SHOW_SPRITES and SHOW_BKG switches are on each loop
@@ -245,7 +240,7 @@ void moveBullets() {
 }
 
 void moveBkg() {
-	//scroll_bkg(0,-1);
+	SCY_REG -= 1;
 }
 
 void enemiesRoutine() {
